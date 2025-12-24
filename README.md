@@ -1,6 +1,6 @@
-# Lending Tracker
+# Lending & Chit Tracker
 
-A local-only web application for tracking personal loans, interest payments, and payment history. Built with Flask and SQLite for complete privacy and local data storage.
+A local-only web application for tracking personal loans, interest payments, chit funds, and payment history with advanced adjustment features. Built with Flask and SQLite for complete privacy and local data storage.
 
 ## Features
 
@@ -12,30 +12,78 @@ A local-only web application for tracking personal loans, interest payments, and
 - Search and filter capabilities
 - Detailed loan view with payment history
 
-### 2. Payments
+### 2. Chit Management (Individual Chits)
+- Track individual chit memberships with monthly schedules
+- Support for variable monthly amounts
+- Prized month and prize amount tracking
+- Monthly payment status (Pending, Partial, Paid, Adjusted)
+- Pending dues tracking with overdue indicators
+- Edit chit details while protecting past/paid months
+- Export chit data to CSV
+- Summary dashboard showing active chits and pending dues
+
+### 3. Chit Adjustment Against Loan Interest
+- **Smart Adjustment System**: Use loan interest to pay chit dues
+- **Dual Payment Tracking**:
+  - Amount adjusted from interest (auto-calculated)
+  - Out-of-pocket payment (manual entry)
+- **Intelligent Calculation**:
+  - Automatically calculates available interest for selected month
+  - Shows breakdown: Interest Due, Already Paid, Available
+  - Validates adjustment against remaining chit due
+  - Handles partial adjustments when interest < chit amount
+- **Complete Audit Trail**:
+  - Creates payment entry for interest adjustment
+  - Records out-of-pocket payments separately
+  - Links adjustments to specific loan interest months
+  - Detailed notes for each transaction
+
+### 4. Payments
 - Record interest and principal payments
 - Automatic interest calculation for selected month
 - Payment attribution to specific interest months
-- Multiple payment modes (Cash, Bank Transfer, UPI, Cheque)
+- Multiple payment modes (Cash, Bank Transfer, UPI, Cheque, Adjustment)
 - Payment validation (Interest + Principal = Total)
+- Success confirmations with detailed popups
 
-### 3. Person History
+### 5. Person History
 - Complete payment ledger by borrower
 - Month-wise transaction history
 - Loan-wise summary and totals
+- Includes both loan payments and chit adjustments
 
-### 4. Monthly Reports
-- Categorized view: Full paid, Partial paid, No payment
-- Active loans tracking by default
-- Option to include closed loans
-- Total interest and principal received
-- Comprehensive monthly financial overview
+### 6. Monthly Reports
+- **Categorized View**:
+  - Full paid (with principal received)
+  - Partial paid
+  - No payment
+- **Advanced Pending Interest Tracking**:
+  - Pending Interest (This Month) - Only from partial/unpaid loans
+  - Total Pending Interest - Cumulative from loan start date
+- **Smart Loan Filtering**:
+  - Considers loan start date (excludes future loans)
+  - Active loans tracking by default
+  - Option to include closed loans
+- **Comprehensive Totals**:
+  - Total interest and principal received
+  - Monthly and cumulative pending amounts
+  - Complete financial overview
 
-### 5. Data Management
-- CSV export for loans and payments
+### 7. Out-of-Pocket Payments
+- **Dedicated Tracking**: Separate tab for cash chit payments
+- **Clear Distinction**: Shows only out-of-pocket amounts (excluding interest adjustments)
+- **Complete Details**:
+  - Borrower and chit information
+  - Payment dates and modes
+  - Payment status
+  - Transaction notes
+
+### 8. Data Management
+- CSV export for loans, payments, and chits
 - Database backup and restore
 - PIN-based authentication
 - Fully local - no cloud dependencies
+- Privacy toggle for amounts (hide/show)
 
 ## Installation
 
@@ -47,7 +95,7 @@ A local-only web application for tracking personal loans, interest payments, and
 
 1. **Navigate to the project directory:**
    ```bash
-   cd lending-tracker
+   cd lending-chit-adjustment
    ```
 
 2. **Install dependencies:**
@@ -86,7 +134,94 @@ A local-only web application for tracking personal loans, interest payments, and
 4. Optionally add document details
 5. Click **Add Loan**
 
-### Recording a Payment
+### Adding a Chit
+
+1. Go to the **Chits** page
+2. Click **+ Add Chit**
+3. Fill in the required fields:
+   - Borrower name (required, auto-complete from existing borrowers)
+   - Chit name (required)
+   - Total months (required)
+   - Start date (required)
+   - Monthly amounts (can vary each month)
+   - Prized month (optional)
+   - Prize amount (optional)
+4. **Quick Fill Options**:
+   - Fill all months with same amount
+   - Fill from prized month onwards
+5. Click **Add Chit**
+
+### Adjusting Chit Payment Against Loan Interest
+
+This powerful feature allows you to use loan interest to pay chit dues:
+
+1. Go to **Chits** page → **Pending Chit Dues**
+2. Find the chit installment you want to pay
+3. Click **Adjust** button
+4. **Select Loan and Interest Month**:
+   - Choose the borrower's active loan
+   - Select interest month (defaults to chit due month)
+5. **Review Auto-Calculated Split**:
+   - Amount from Interest: Auto-calculated based on available interest
+   - Out of Pocket: Enter any additional amount you're paying
+   - Total Payment: Shows combined amount
+6. **View Detailed Breakdown**:
+   - Interest Due for selected month
+   - Already Paid
+   - Available Interest
+   - Remaining Chit Due
+   - Amount to adjust from interest
+   - Additional payment needed (if any)
+7. Add notes and click **Submit Adjustment**
+
+**Important Notes:**
+- System validates you have enough available interest
+- If available interest < chit due, shows partial payment warning
+- Creates audit entries in both payments and chit schedule
+- Prevents over-payment beyond remaining due amount
+- Success popup shows complete breakdown before refresh
+
+### Paying Chit Directly (Out-of-Pocket)
+
+1. Go to **Chits** page → **Pending Chit Dues**
+2. Find the chit installment
+3. Click **Pay** button
+4. **System automatically shows**:
+   - Remaining amount to pay (if partial payment exists)
+   - Already paid amount
+   - Due amount
+5. Enter payment details:
+   - Paid amount (defaults to remaining, max = remaining)
+   - Payment date
+   - Payment mode
+   - Notes (optional)
+6. Click **Record Payment**
+
+**Validation:**
+- Cannot pay more than remaining amount
+- Cannot pay zero or negative amounts
+- Shows clear error messages if validation fails
+- Success popup confirms payment before refresh
+
+### Editing a Chit
+
+1. Go to **Chits** page → **All Chits**
+2. Click **View** on the chit you want to edit
+3. Click **Edit Chit** button
+4. **Edit Protection**:
+   - Past months (before current month): Read-only
+   - Paid/Adjusted months: Read-only (shown in green)
+   - Future/Pending months: Editable
+5. Modify editable fields:
+   - Borrower name
+   - Chit name
+   - Start date
+   - Future month amounts
+   - Prized month, prize amount
+   - Notes
+6. Click **Update Chit**
+
+### Recording a Loan Payment
 
 1. Go to the **Payments** page
 2. Select the loan/borrower
@@ -101,25 +236,42 @@ A local-only web application for tracking personal loans, interest payments, and
 
 **Tip:** The system will automatically calculate the interest due for the selected month to help you allocate the payment correctly.
 
-### Editing a Loan
+### Viewing Person History
 
-1. Go to the **Loans** page
-2. Find the loan you want to edit
-3. Click **Edit** button
-4. Modify the fields:
-   - Borrower details (name, phone)
-   - Principal given/outstanding
-   - Interest rate
-   - Given date
-   - Document details
-   - Notes
-5. Click **Update Loan**
+1. Go to **Person History** page
+2. Select a borrower from the dropdown
+3. View:
+   - All loans for that borrower
+   - Complete payment ledger (including chit adjustments)
+   - Totals for each loan
 
-**Important Notes:**
-- Changing **Principal Given** or **Interest Rate** will affect all interest calculations
-- **Outstanding Principal** should match: Principal Given - Total Principal Paid
-- Changes take effect immediately
-- Edit with caution as it affects historical calculations
+### Generating Monthly Reports
+
+1. Go to **Monthly Report** page
+2. Select the month (YYYY-MM format)
+3. Optionally check "Include Closed Loans"
+4. View categorized report:
+   - **Full Interest Paid** (shows principal paid and total received)
+   - **Partial Interest Paid** (contributes to monthly pending)
+   - **No Interest Paid** (contributes to monthly pending)
+   - **Summary Banner**:
+     - Total Interest Received
+     - Total Principal Received
+     - Total Received
+     - Pending Interest (This Month) - Only from partial/unpaid
+     - Total Pending Interest - Cumulative from loan start
+
+### Viewing Out-of-Pocket Chit Payments
+
+1. Go to **Out of Pocket** page
+2. View all chit payments made from your pocket
+3. **Displays**:
+   - Borrower and chit details
+   - Month and due date
+   - Due amount vs out-of-pocket amount
+   - Payment date and mode
+   - Status and notes
+4. **Note**: This excludes amounts adjusted from interest (those appear in Monthly Report and Payment History)
 
 ### Closing a Loan
 
@@ -136,25 +288,14 @@ A local-only web application for tracking personal loans, interest payments, and
 
 **Note:** Loans can be closed even with pending amounts. Once closed, they won't accrue interest and won't appear in monthly reports by default.
 
-### Viewing Person History
+### Closing a Chit
 
-1. Go to **Person History** page
-2. Select a borrower from the dropdown
-3. View:
-   - All loans for that borrower
-   - Complete payment ledger
-   - Totals for each loan
+1. Go to the **Chits** page
+2. Find the chit you want to close
+3. Click **Close** button
+4. Confirm closure
 
-### Generating Monthly Reports
-
-1. Go to **Monthly Report** page
-2. Select the month (YYYY-MM format)
-3. Optionally check "Include Closed Loans"
-4. View categorized report:
-   - Full Interest Paid
-   - Partial Interest Paid
-   - No Interest Paid
-   - Summary totals
+**Note:** Closed chits are excluded from pending dues and can be filtered out from the main view.
 
 ## Database Schema
 
@@ -188,8 +329,42 @@ A local-only web application for tracking personal loans, interest payments, and
 - `total_received`: Total amount received
 - `interest_paid`: Amount allocated to interest
 - `principal_paid`: Amount allocated to principal
-- `payment_mode`: Mode of payment (Cash, Bank Transfer, etc.)
+- `payment_mode`: Mode of payment (Cash, Bank Transfer, UPI, Cheque, Adjustment)
 - `reference`: Reference number
+- `notes`: Additional notes
+
+### Chits Table
+- `id`: Primary key
+- `borrower_id`: Foreign key to borrowers
+- `borrower_name`: Borrower name (denormalized for easier queries)
+- `chit_name`: Name of the chit
+- `total_months`: Total number of months
+- `start_date`: Chit start date
+- `prized_month`: Month when prize was received (optional)
+- `prize_amount`: Prize amount received (optional)
+- `status`: Active or Closed
+- `notes`: Additional notes
+- `created_at`: Timestamp
+
+### Chit Monthly Schedule Table
+- `id`: Primary key
+- `chit_id`: Foreign key to chits
+- `month_number`: Month number (1, 2, 3...)
+- `due_date`: Due date for this month
+- `due_amount`: Amount due for this month
+- `paid_amount`: Amount paid (cumulative for partial payments)
+- `paid_date`: Date when payment was made
+- `payment_mode`: Mode of payment
+- `payment_status`: Pending, Partial, Paid, or Adjusted
+- `notes`: Additional notes
+
+### Chit Adjustments Table
+- `id`: Primary key
+- `chit_schedule_id`: Foreign key to chit_monthly_schedule
+- `loan_id`: Foreign key to loans
+- `interest_month`: Interest month being used (YYYY-MM)
+- `adjusted_amount`: Amount adjusted from interest
+- `adjustment_date`: Date of adjustment
 - `notes`: Additional notes
 
 ## Business Logic
@@ -213,12 +388,75 @@ Opening Principal = Principal Given - Sum of all principal payments made BEFORE 
 - Principal payments immediately reduce the outstanding principal
 - Future interest calculations use the reduced principal
 
+### Chit Adjustment Logic
+
+When adjusting a chit payment against loan interest:
+
+1. **Calculate Available Interest**:
+   ```
+   Interest Due = Opening Principal × (Monthly Rate / 100)
+   Available Interest = Interest Due - Already Paid for Month
+   ```
+
+2. **Determine Adjustment Amount**:
+   ```
+   Adjustable Amount = MIN(Available Interest, Remaining Chit Due)
+   ```
+
+3. **Create Dual Entries**:
+   - **Chit Adjustment Record**: Links chit schedule to loan interest month
+   - **Payment Entry**: Records as payment mode "Adjustment"
+   - **Chit Schedule Update**: Updates paid_amount and status
+
+4. **Handle Partial Adjustments**:
+   - If Available Interest < Remaining Chit Due:
+     - Adjusts maximum possible from interest
+     - Marks chit as "Partial"
+     - Shows remaining amount to be paid
+   - If Available Interest ≥ Remaining Chit Due:
+     - Fully pays the chit
+     - Marks as "Adjusted"
+
+5. **Out-of-Pocket Component**:
+   - Can be added to adjustment to fully pay chit
+   - Recorded as regular payment on chit schedule
+   - Total = Interest Adjustment + Out-of-Pocket
+
+### Pending Interest Calculation
+
+**Pending Interest (This Month)**:
+- Only includes loans with partial or no payment for selected month
+- Calculated as: Interest Due - Interest Paid (for that month only)
+- Excludes fully paid loans from total
+
+**Total Pending Interest**:
+- Cumulative from loan start date to selected month
+- Includes all unpaid interest across all months
+- Formula:
+  ```
+  Total Pending = Σ(Interest Due per Month) - Σ(Interest Paid per Month)
+  From loan start date to report month
+  ```
+
+### Loan Start Date Filtering
+
+- Monthly reports only include loans that started on or before the report month
+- Loans starting after the report month are excluded entirely
+- Prevents future loans from affecting historical reports
+
 ### Closed Loans
 
 - Closed loans do not accrue interest after the closed date
 - They are excluded from monthly reports by default
 - No new payments can be added (unless loan is reopened)
 - All historical data is preserved
+
+### Closed Chits
+
+- Closed chits don't appear in pending dues
+- Can be filtered out from main chit list
+- All payment history preserved
+- Monthly schedule remains accessible
 
 ## Data Export & Backup
 
@@ -233,6 +471,11 @@ Opening Principal = Principal Given - Sum of all principal payments made BEFORE 
 - Go to Payments page
 - Click "Export CSV"
 - Downloads all payment records with borrower names
+
+**Chits Export:**
+- Go to Chits page
+- Click "Export CSV"
+- Downloads all chit data with schedule details
 
 ### Database Backup
 
@@ -261,9 +504,11 @@ The application stores all data in `database/lending.db`
 python -c "from database.db_manager import update_pin; update_pin('YOUR_NEW_PIN')"
 ```
 
-### Local-Only Operation
+### Privacy Features
 
-- All data stored locally in SQLite database
+- **Amount Hiding**: Toggle visibility of chit amounts with 👁️/🔒 button
+- **Local Storage**: Preference saved in browser localStorage
+- **Local-Only Operation**: All data stored locally in SQLite database
 - No external API calls or cloud dependencies
 - Runs entirely on localhost
 - Suitable for personal/family use
@@ -271,19 +516,23 @@ python -c "from database.db_manager import update_pin; update_pin('YOUR_NEW_PIN'
 ## File Structure
 
 ```
-lending-tracker/
+lending-chit-adjustment/
 ├── app.py                      # Flask application
+├── chit_api_endpoints.py       # Chit API routes
 ├── requirements.txt            # Python dependencies
 ├── README.md                   # This file
 ├── database/
 │   ├── schema.sql             # Database schema
-│   ├── db_manager.py          # Database operations
+│   ├── db_manager.py          # Database operations (loans + chits)
+│   ├── chit_logic.py          # Chit business logic
 │   └── lending.db             # SQLite database (created on first run)
 ├── templates/
-│   ├── base.html              # Base template
+│   ├── base.html              # Base template with navigation
 │   ├── login.html             # Login page
 │   ├── loans.html             # Loans page
 │   ├── payments.html          # Payments page
+│   ├── chits.html             # Chits page with adjustment modals
+│   ├── out_of_pocket.html     # Out-of-pocket payments page
 │   ├── person_history.html    # Person history page
 │   └── monthly_report.html    # Monthly report page
 └── static/
@@ -293,6 +542,8 @@ lending-tracker/
         ├── main.js            # Common utilities
         ├── loans.js           # Loans page logic
         ├── payments.js        # Payments page logic
+        ├── chits.js           # Chits page logic with adjustment
+        ├── out_of_pocket.js   # Out-of-pocket payments logic
         ├── person_history.js  # Person history logic
         └── monthly_report.js  # Monthly report logic
 ```
@@ -317,6 +568,24 @@ lending-tracker/
 - Check that payments are attributed to the correct interest month
 - Principal payments only affect future months, not the current month's interest
 
+### Chit adjustment not working
+- Ensure the borrower has an active loan
+- Check that there's available interest for the selected month
+- Verify the interest month hasn't been fully paid already
+- Review the detailed breakdown shown in the adjustment modal
+
+### Pending Interest (This Month) seems incorrect
+- This only includes partial and unpaid loans for the selected month
+- Fully paid loans are excluded from this total
+- Loans that haven't started yet are excluded
+- Check individual loan details in the table below
+
+### Can't pay more than remaining amount on partial chit
+- This is intentional - prevents overpayment
+- System shows remaining amount and already paid amount
+- Maximum payment allowed = Remaining amount only
+- If you need to modify, edit the chit schedule directly
+
 ## Support
 
 For issues or questions:
@@ -324,6 +593,7 @@ For issues or questions:
 2. Review the database schema
 3. Check the browser console for JavaScript errors
 4. Review Flask logs in the terminal
+5. Check SQL_REFERENCE.md for direct database queries
 
 ## License
 
@@ -331,4 +601,12 @@ This is a personal/private application. Modify as needed for your use case.
 
 ## Version
 
-Version 1.0.0 - Initial Release
+Version 2.0.0 - Chit Management with Interest Adjustment
+
+**Major Features:**
+- Individual chit tracking with monthly schedules
+- Chit adjustment against loan interest
+- Dual payment tracking (interest adjustment vs out-of-pocket)
+- Enhanced monthly reports with granular pending interest
+- Loan start date filtering
+- Privacy toggles and improved UX
