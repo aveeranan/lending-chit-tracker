@@ -95,7 +95,7 @@ A local-only web application for tracking personal loans, interest payments, chi
 
 1. **Navigate to the project directory:**
    ```bash
-   cd lending-chit-adjustment
+   cd lending-chit-tracker
    ```
 
 2. **Install dependencies:**
