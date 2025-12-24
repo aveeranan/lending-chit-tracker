@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Lending Tracker{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-box">
+        <h1>Lending Tracker</h1>
+        <p class="subtitle">Enter your PIN to continue</p>
+
+        {% if error %}
+        <div class="error-message">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="form-group">
+                <input type="password" id="pin" name="pin" placeholder="Enter PIN" required autofocus maxlength="10">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Login</button>
+        </form>
+
+        <p class="help-text">Default PIN: 1234</p>
+    </div>
+</div>
+{% endblock %}

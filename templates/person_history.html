@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Person History - Lending Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Person History</h1>
+</div>
+
+<div class="filters">
+    <div class="filter-group">
+        <label>Select Borrower:</label>
+        <select id="borrowerSelect" onchange="loadPersonHistory()">
+            <option value="">Choose borrower...</option>
+        </select>
+    </div>
+</div>
+
+<div id="historyContent">
+    <p class="info-message">Loading recent payments...</p>
+</div>
+
+<script src="{{ url_for('static', filename='js/person_history.js') }}"></script>
+{% endblock %}

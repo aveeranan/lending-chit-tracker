@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Lending Tracker{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if request.endpoint != 'login' %}
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">Lending Tracker</div>
+            <ul class="nav-menu">
+                <li><a href="{{ url_for('loans') }}" class="{% if request.endpoint == 'loans' %}active{% endif %}">Loans</a></li>
+                <li><a href="{{ url_for('payments') }}" class="{% if request.endpoint == 'payments' %}active{% endif %}">Payments</a></li>
+                <li><a href="{{ url_for('person_history') }}" class="{% if request.endpoint == 'person_history' %}active{% endif %}">Person History</a></li>
+                <li><a href="{{ url_for('monthly_report') }}" class="{% if request.endpoint == 'monthly_report' %}active{% endif %}">Monthly Report</a></li>
+                <li><a href="{{ url_for('chits') }}" class="{% if request.endpoint == 'chits' %}active{% endif %}">Chits</a></li>
+                <li><a href="{{ url_for('out_of_pocket') }}" class="{% if request.endpoint == 'out_of_pocket' %}active{% endif %}">Out of Pocket</a></li>
+                <li><a href="{{ url_for('logout') }}" class="logout-btn">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+    {% endif %}
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

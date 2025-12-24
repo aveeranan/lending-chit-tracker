@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Out of Pocket Payments - Lending Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Out of Pocket Chit Payments</h1>
+</div>
+
+<div style="margin-bottom: 20px; padding: 15px; background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 4px;">
+    <p style="margin: 0; color: #1976d2;">
+        <strong>ℹ️ About Out of Pocket Payments:</strong> These are chit payments that you made directly from your pocket (cash, bank transfer, etc.)
+        without adjusting against loan interest. Payments made through interest adjustments are shown in the Monthly Report and Payment History tabs.
+    </p>
+</div>
+
+<div class="table-container">
+    <table class="data-table" id="outOfPocketTable">
+        <thead>
+            <tr>
+                <th>Borrower</th>
+                <th>Chit Name</th>
+                <th>Month</th>
+                <th>Due Date</th>
+                <th>Due Amount</th>
+                <th>Out-of-Pocket Amount</th>
+                <th>Paid Date</th>
+                <th>Payment Mode</th>
+                <th>Status</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody id="outOfPocketTableBody">
+            <!-- Will be populated by JavaScript -->
+        </tbody>
+    </table>
+</div>
+
+<script src="{{ url_for('static', filename='js/out_of_pocket.js') }}"></script>
+{% endblock %}

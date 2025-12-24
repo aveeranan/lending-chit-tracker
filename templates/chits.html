@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+
+{% block title %}Chits - Lending Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Chits</h1>
+    <div class="header-actions">
+        <button class="btn btn-secondary" onclick="exportChits()">Export CSV</button>
+        <button class="btn btn-primary" onclick="showAddChitModal()">+ Add Chit</button>
+    </div>
+</div>
+
+<!-- Summary Banner -->
+<div class="loans-summary-banner" id="chitsSummaryBanner">
+    <div class="summary-header">
+        <h3 style="margin: 0; color: #2c3e50;">Chit Summary</h3>
+        <button class="btn btn-sm" onclick="toggleChitAmounts()" id="toggleChitAmountsBtn" style="padding: 0.3rem 0.8rem;">
+            <span id="toggleChitIcon">👁️</span> <span id="toggleChitText">Hide Amounts</span>
+        </button>
+    </div>
+    <div class="summary-items">
+        <div class="summary-item">
+            <div class="summary-label">Active Chits</div>
+            <div class="summary-value" id="summaryActiveChits">-</div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-label">Pending Dues (Current Month)</div>
+            <div class="summary-value" id="summaryCurrentMonthDues">-</div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-label">Total Pending Dues</div>
+            <div class="summary-value" id="summaryTotalPendingDues">-</div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-label">Total Paid</div>
+            <div class="summary-value" id="summaryTotalPaid">-</div>
+        </div>
+    </div>
+</div>
+
+<div class="filters">
+    <div class="filter-group">
+        <label>Status:</label>
+        <select id="statusFilter" onchange="loadChits()">
+            <option value="">All</option>
+            <option value="Active" selected>Active</option>
+            <option value="Completed">Completed</option>
+            <option value="Closed">Closed</option>
+        </select>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="data-table" id="chitsTable">
+        <thead>
+            <tr>
+                <th>Borrower</th>
+                <th>Chit Name</th>
+                <th>Start Date</th>
+                <th>Total Months</th>
+                <th>Prized Month</th>
+                <th>Prize Amount</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="chitsTableBody">
+            <!-- Will be populated by JavaScript -->
+        </tbody>
+    </table>
+</div>
+
+<!-- Pending Dues Section -->
+<div style="margin-top: 30px;">
+    <h2>Pending Chit Dues</h2>
+    <div class="table-container">
+        <table class="data-table" id="pendingDuesTable">
+            <thead>
+                <tr>
+                    <th>Borrower</th>
+                    <th>Chit Name</th>
+                    <th>Month</th>
+                    <th>Due Date</th>
+                    <th>Due Amount</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="pendingDuesTableBody">
+                <!-- Will be populated by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Chit Modal -->
+<div id="addChitModal" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-title-bar">
+            <h2>Add New Chit</h2>
+            <span class="close" onclick="closeAddChitModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+        <form id="addChitForm" onsubmit="submitChit(event)">
+            <div class="form-group">
+                <label for="borrowerName">Borrower Name *</label>
+                <input type="text" id="borrowerName" list="borrowersList" required>
+                <datalist id="borrowersList"></datalist>
+            </div>
+
+            <div class="form-group">
+                <label for="chitName">Chit Name *</label>
+                <input type="text" id="chitName" required placeholder="e.g., Chit 2024-01">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="totalMonths">Total Months</label>
+                    <input type="number" id="totalMonths" value="20" min="1" max="100" required onchange="generateMonthlyInputs()">
+                </div>
+                <div class="form-group">
+                    <label for="startDate">Start Date *</label>
+                    <input type="date" id="startDate" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="prizedMonth">Prized Month (Optional)</label>
+                    <input type="number" id="prizedMonth" min="1" max="100" placeholder="e.g., 5">
+                </div>
+                <div class="form-group">
+                    <label for="prizeAmount">Prize Amount (Optional)</label>
+                    <input type="number" id="prizeAmount" step="0.01" placeholder="e.g., 50000">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Monthly Payment Amounts *</label>
+                <p style="font-size: 0.9em; color: #666;">Enter the amount for each month. You can use the quick fill options below.</p>
+
+                <!-- Quick Fill Options -->
+                <div style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
+                    <strong>Quick Fill:</strong>
+                    <input type="number" id="quickFillAmount" placeholder="Amount" step="0.01" style="width: 120px; margin: 0 10px;">
+                    <button type="button" onclick="fillAllMonths()" class="btn btn-secondary">Fill All</button>
+                    <button type="button" onclick="fillRemainingMonths()" class="btn btn-secondary">Fill From Prized Month</button>
+                </div>
+
+                <div id="monthlyAmountsContainer" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea id="notes" rows="3"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create Chit</button>
+        </form>
+        </div>
+    </div>
+</div>
+
+<!-- View Chit Details Modal -->
+<div id="viewChitModal" class="modal">
+    <div class="modal-content" style="max-width: 1000px;">
+        <div class="modal-title-bar">
+            <h2 id="viewChitTitle">Chit Details</h2>
+            <span class="close" onclick="closeViewChitModal()">&times;</span>
+        </div>
+        <div class="modal-body" id="chitDetailsContent">
+            <!-- Will be populated by JavaScript -->
+        </div>
+    </div>
+</div>
+
+<!-- Pay Chit Modal -->
+<div id="payChitModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-title-bar">
+            <h2>Mark Chit Payment as Paid</h2>
+            <span class="close" onclick="closePayChitModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+        <form id="payChitForm" onsubmit="submitChitPayment(event)">
+            <input type="hidden" id="payScheduleId">
+
+            <div id="paymentDetails" style="background: #f5f5f5; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+                <!-- Will show chit and month details -->
+            </div>
+
+            <div class="form-group">
+                <label for="paidAmount">Paid Amount *</label>
+                <input type="number" id="paidAmount" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label for="paidDate">Paid Date *</label>
+                <input type="date" id="paidDate" required>
+            </div>
+
+            <div class="form-group">
+                <label for="paymentMode">Payment Mode</label>
+                <select id="paymentMode">
+                    <option value="">Select</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Cheque">Cheque</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="payNotes">Notes</label>
+                <textarea id="payNotes" rows="3"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Mark as Paid</button>
+        </form>
+        </div>
+    </div>
+</div>
+
+<!-- Adjust Balance Modal -->
+<div id="adjustBalanceModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-title-bar">
+            <h2>Adjust Chit Payment Against Interest</h2>
+            <span class="close" onclick="closeAdjustBalanceModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+        <form id="adjustBalanceForm" onsubmit="submitAdjustment(event)">
+            <input type="hidden" id="adjustScheduleId">
+
+            <div id="adjustmentDetails" style="background: #f5f5f5; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+                <!-- Will show chit details -->
+            </div>
+
+            <div class="form-group">
+                <label for="adjustLoanId">Select Loan (from this borrower) *</label>
+                <select id="adjustLoanId" required onchange="calculateAdjustmentSplit()">
+                    <option value="">Select Loan</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="adjustInterestMonth">Interest Month *</label>
+                <input type="month" id="adjustInterestMonth" required onchange="calculateAdjustmentSplit()">
+                <p style="font-size: 0.9em; color: #666;">The month for which interest is being adjusted</p>
+            </div>
+
+            <div id="interestAvailableDisplay" style="background: #e8f5e9; padding: 15px; margin-bottom: 20px; border-radius: 4px; display: none;">
+                <!-- Will show interest available details -->
+            </div>
+
+            <div class="form-group">
+                <label for="adjustedAmountFromInterest">Amount Adjusted from Interest</label>
+                <input type="number" id="adjustedAmountFromInterest" step="0.01" readonly style="background: #f0f0f0; color: #333; font-weight: bold;">
+                <p style="font-size: 0.9em; color: #666;">This amount will be automatically adjusted from available interest</p>
+            </div>
+
+            <div class="form-group">
+                <label for="outOfPocketAmount">Out of Pocket Payment</label>
+                <input type="number" id="outOfPocketAmount" step="0.01" min="0" value="0" placeholder="0.00" onchange="updateTotalAdjustment()">
+                <p style="font-size: 0.9em; color: #666;">Additional amount you're paying from your pocket</p>
+            </div>
+
+            <div style="background: #fff3cd; padding: 15px; margin-bottom: 20px; border-radius: 4px; border-left: 4px solid #ffc107;">
+                <strong>Total Payment:</strong> <span id="totalPaymentDisplay" style="font-size: 1.2em; color: #e74c3c;">₹0.00</span>
+            </div>
+
+            <div class="form-group">
+                <label for="adjustNotes">Notes</label>
+                <textarea id="adjustNotes" rows="3" placeholder="e.g., Adjusted chit payment against interest received"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create Adjustment</button>
+        </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Chit Modal -->
+<div id="editChitModal" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-title-bar">
+            <h2>Edit Chit</h2>
+            <span class="close" onclick="closeEditChitModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+        <form id="editChitForm" onsubmit="submitEditChit(event)">
+            <input type="hidden" id="editChitId">
+
+            <div class="form-group">
+                <label for="editBorrowerName">Borrower Name *</label>
+                <input type="text" id="editBorrowerName" list="borrowersList" required>
+            </div>
+
+            <div class="form-group">
+                <label for="editChitName">Chit Name *</label>
+                <input type="text" id="editChitName" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="editTotalMonths">Total Months</label>
+                    <input type="number" id="editTotalMonths" value="20" min="1" max="100" required readonly style="background: #f5f5f5;">
+                    <small style="color: #666;">Total months cannot be changed after creation</small>
+                </div>
+                <div class="form-group">
+                    <label for="editStartDate">Start Date *</label>
+                    <input type="date" id="editStartDate" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="editPrizedMonth">Prized Month (Optional)</label>
+                    <input type="number" id="editPrizedMonth" min="1" max="100" placeholder="e.g., 5">
+                </div>
+                <div class="form-group">
+                    <label for="editPrizeAmount">Prize Amount (Optional)</label>
+                    <input type="number" id="editPrizeAmount" step="0.01" placeholder="e.g., 50000">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Monthly Payment Amounts *</label>
+                <p style="font-size: 0.9em; color: #666;">
+                    You can edit amounts for current month and future months.
+                    <strong>Past paid/adjusted months cannot be changed.</strong>
+                </p>
+
+                <!-- Quick Fill Options -->
+                <div style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
+                    <strong>Quick Fill (Future Months Only):</strong>
+                    <input type="number" id="editQuickFillAmount" placeholder="Amount" step="0.01" style="width: 120px; margin: 0 10px;">
+                    <button type="button" onclick="fillFutureMonths()" class="btn btn-secondary">Fill Future Months</button>
+                </div>
+
+                <div id="editMonthlyAmountsContainer" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="editNotes">Notes</label>
+                <textarea id="editNotes" rows="3"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/chits.js') }}"></script>
+{% endblock %}

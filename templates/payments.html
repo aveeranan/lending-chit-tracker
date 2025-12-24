@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Payments - Lending Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Add Payment</h1>
+    <div class="header-actions">
+        <button class="btn btn-secondary" onclick="exportPayments()">Export CSV</button>
+    </div>
+</div>
+
+<div class="form-container">
+    <form id="addPaymentForm" onsubmit="submitPayment(event)">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="loan_id">Loan / Borrower *</label>
+                <select id="loan_id" name="loan_id" required onchange="updateInterestDue()">
+                    <option value="">Select loan...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="payment_date">Payment Date *</label>
+                <input type="date" id="payment_date" name="payment_date" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="interest_month">Interest for Month (YYYY-MM) *</label>
+                <input type="month" id="interest_month" name="interest_month" required onchange="updateInterestDue()">
+            </div>
+            <div class="form-group">
+                <label>Interest Due for Selected Month</label>
+                <div class="info-display" id="interestDueDisplay">-</div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="total_received">Total Amount Received *</label>
+                <input type="number" id="total_received" name="total_received" step="0.01" required onchange="calculateSplit()">
+            </div>
+            <div class="form-group">
+                <label for="interest_paid">Interest Paid *</label>
+                <input type="number" id="interest_paid" name="interest_paid" step="0.01" required onchange="validateTotal()">
+            </div>
+            <div class="form-group">
+                <label for="principal_paid">Principal Paid *</label>
+                <input type="number" id="principal_paid" name="principal_paid" step="0.01" required onchange="validateTotal()">
+            </div>
+        </div>
+
+        <div id="validationMessage" class="error-message" style="display: none;"></div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="payment_mode">Payment Mode</label>
+                <select id="payment_mode" name="payment_mode">
+                    <option value="">Select...</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Cheque">Cheque</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="reference">Reference Number</label>
+                <input type="text" id="reference" name="reference">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notes</label>
+            <textarea id="notes" name="notes" rows="3"></textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="reset" class="btn btn-secondary">Clear</button>
+            <button type="submit" class="btn btn-primary">Add Payment</button>
+        </div>
+    </form>
+</div>
+
+<div class="success-message" id="successMessage" style="display: none;">
+    Payment added successfully!
+</div>
+
+<script src="{{ url_for('static', filename='js/payments.js') }}"></script>
+{% endblock %}

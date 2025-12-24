@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Monthly Report - Lending Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Monthly Report</h1>
+</div>
+
+<div class="filters">
+    <div class="filter-group">
+        <label>Select Month:</label>
+        <input type="month" id="reportMonth" onchange="loadMonthlyReport()">
+    </div>
+    <div class="filter-group">
+        <label>
+            <input type="checkbox" id="includeClosed" onchange="loadMonthlyReport()">
+            Include Closed Loans
+        </label>
+    </div>
+</div>
+
+<div id="reportContent">
+    <p class="info-message">Select a month to view the report.</p>
+</div>
+
+<script src="{{ url_for('static', filename='js/monthly_report.js') }}"></script>
+{% endblock %}

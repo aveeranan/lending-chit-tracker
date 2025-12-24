@@ -1,0 +1,119 @@
+================================================================================
+                          LENDING TRACKER APPLICATION
+                          Local Loan Management System
+================================================================================
+
+WELCOME! This is your complete lending tracker application.
+
+================================================================================
+QUICK START (Choose One)
+================================================================================
+
+OPTION 1: One-Click Start (Easiest)
+------------------------------------
+Mac/Linux:
+    ./start.sh
+
+Windows:
+    start.bat
+
+
+OPTION 2: Manual Start
+----------------------
+    pip install -r requirements.txt
+    python app.py
+
+
+Then open: http://localhost:5000
+Default PIN: 1234
+
+================================================================================
+WHAT YOU GET
+================================================================================
+
+✓ Loan Management      - Track loans with borrower details, interest rates
+✓ Payment Recording    - Record interest and principal payments
+✓ Person History       - Complete payment ledger per borrower
+✓ Monthly Reports      - See who paid, who didn't, and totals
+✓ Data Export          - CSV export and database backup
+✓ Complete Privacy     - Everything stored locally, no cloud
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. START THE APP
+   Run: ./start.sh (or start.bat on Windows)
+
+2. LOGIN
+   Open http://localhost:5000
+   Enter PIN: 1234
+
+3. ADD YOUR FIRST LOAN
+   Loans → + Add Loan → Fill details → Add Loan
+
+4. RECORD A PAYMENT
+   Payments → Select loan → Enter payment details → Add Payment
+
+5. VIEW REPORTS
+   Monthly Report → Select month → View who paid
+
+================================================================================
+DOCUMENTATION
+================================================================================
+
+Quick Start Guide:  QUICKSTART.md      (5-minute tutorial)
+Full Manual:        README.md          (Complete documentation)
+SQL Reference:      SQL_REFERENCE.md   (Advanced queries)
+Project Info:       PROJECT_SUMMARY.md (Technical overview)
+
+================================================================================
+FILE LOCATIONS
+================================================================================
+
+Database:       database/lending.db
+Backups:        Export from web interface
+Logs:           Terminal where you ran python app.py
+
+================================================================================
+IMPORTANT NOTES
+================================================================================
+
+✓ All data is stored LOCALLY in database/lending.db
+✓ NO internet connection required
+✓ NO cloud services or external APIs
+✓ Change the default PIN for security
+✓ Backup your database regularly
+
+================================================================================
+GETTING HELP
+================================================================================
+
+1. Read QUICKSTART.md for common tasks
+2. Read README.md for detailed documentation
+3. Check browser console (F12) for errors
+4. Check terminal for Flask error messages
+
+================================================================================
+SYSTEM REQUIREMENTS
+================================================================================
+
+✓ Python 3.8 or higher
+✓ Modern web browser (Chrome, Firefox, Safari, Edge)
+✓ 10 MB free disk space
+✓ Any operating system (Mac, Windows, Linux)
+
+================================================================================
+READY TO START?
+================================================================================
+
+Run this command:
+
+    ./start.sh         (Mac/Linux)
+    start.bat          (Windows)
+
+Then open http://localhost:5000 and login with PIN: 1234
+
+Enjoy tracking your loans!
+
+================================================================================
