@@ -586,6 +586,180 @@ lending-chit-adjustment/
 - Maximum payment allowed = Remaining amount only
 - If you need to modify, edit the chit schedule directly
 
+## Database Access from Terminal
+
+You can directly access and query the SQLite database from the terminal using the `sqlite3` command.
+
+### Opening the Database
+
+**Interactive mode:**
+```bash
+sqlite3 /Users/asveeranan/git/lending-chit-tracker/database/lending.db
+```
+
+**Run a single query:**
+```bash
+sqlite3 /Users/asveeranan/git/lending-chit-tracker/database/lending.db "SELECT * FROM borrowers;"
+```
+
+### Useful SQLite Commands
+
+Once inside the sqlite3 prompt, you can use these commands:
+
+```sql
+.tables                    -- List all tables
+.schema payments           -- Show table structure
+.headers on                -- Show column headers in results
+.mode column               -- Display results in column format
+.exit                      -- Exit sqlite3
+```
+
+### Common Queries
+
+#### View All Borrowers
+```sql
+SELECT * FROM borrowers;
+```
+
+#### View All Loans for a Borrower
+```sql
+SELECT * FROM loans WHERE borrower_id = (SELECT id FROM borrowers WHERE name = 'BorrowerName');
+```
+
+#### View Recent Payments for a Borrower
+```sql
+SELECT p.id, p.payment_date, p.total_received, p.interest_paid, p.principal_paid, b.name
+FROM payments p
+JOIN loans l ON p.loan_id = l.id
+JOIN borrowers b ON l.borrower_id = b.id
+WHERE b.name = 'BorrowerName'
+ORDER BY p.payment_date DESC
+LIMIT 10;
+```
+
+#### View Recent Chit Payments
+```sql
+SELECT cms.id, c.chit_name, b.name, cms.due_date, cms.due_amount, cms.paid_amount, cms.payment_status
+FROM chit_monthly_schedule cms
+JOIN chits c ON cms.chit_id = c.id
+JOIN borrowers b ON c.borrower_id = b.id
+WHERE cms.payment_status != 'Pending'
+ORDER BY cms.paid_date DESC
+LIMIT 10;
+```
+
+#### View Chit Adjustments
+```sql
+SELECT ca.id, ca.adjustment_date, c.chit_name, b.name, ca.interest_month, ca.adjusted_amount, ca.notes
+FROM chit_adjustments ca
+JOIN chit_monthly_schedule cms ON ca.chit_schedule_id = cms.id
+JOIN chits c ON cms.chit_id = c.id
+JOIN borrowers b ON c.borrower_id = b.id
+ORDER BY ca.adjustment_date DESC
+LIMIT 10;
+```
+
+#### View Direct Chit Payments (Out-of-Pocket)
+```sql
+SELECT dcp.id, dcp.payment_date, c.chit_name, b.name, cms.due_date, dcp.paid_amount, dcp.payment_mode
+FROM direct_chit_payments dcp
+JOIN chit_monthly_schedule cms ON dcp.chit_schedule_id = cms.id
+JOIN chits c ON cms.chit_id = c.id
+JOIN borrowers b ON c.borrower_id = b.id
+ORDER BY dcp.payment_date DESC
+LIMIT 10;
+```
+
+### Deleting Records
+
+**IMPORTANT**: Always backup your database before deleting records. Deletions are permanent and cannot be undone.
+
+#### Delete a Loan Repayment Entry
+
+First, find the payment ID you want to delete:
+```sql
+SELECT p.id, p.payment_date, p.total_received, p.interest_paid, p.principal_paid, b.name
+FROM payments p
+JOIN loans l ON p.loan_id = l.id
+JOIN borrowers b ON l.borrower_id = b.id
+WHERE b.name = 'BorrowerName'
+ORDER BY p.payment_date DESC;
+```
+
+Then delete by ID:
+```sql
+DELETE FROM payments WHERE id = [payment_id];
+```
+
+Example:
+```sql
+DELETE FROM payments WHERE id = 31;
+```
+
+#### Delete a Chit Adjustment Entry
+
+First, find the adjustment ID:
+```sql
+SELECT ca.id, ca.adjustment_date, c.chit_name, b.name, ca.interest_month, ca.adjusted_amount
+FROM chit_adjustments ca
+JOIN chit_monthly_schedule cms ON ca.chit_schedule_id = cms.id
+JOIN chits c ON cms.chit_id = c.id
+JOIN borrowers b ON c.borrower_id = b.id
+WHERE b.name = 'BorrowerName'
+ORDER BY ca.adjustment_date DESC;
+```
+
+Then delete by ID:
+```sql
+DELETE FROM chit_adjustments WHERE id = [adjustment_id];
+```
+
+**Note**: Deleting a chit adjustment does NOT automatically remove the corresponding payment entry or update the chit schedule. You may need to:
+1. Delete the related payment entry (if it was created as "Adjustment" mode)
+2. Update the chit_monthly_schedule to reduce paid_amount and adjust payment_status
+
+#### Delete an Out-of-Pocket Chit Payment
+
+First, find the payment ID:
+```sql
+SELECT dcp.id, dcp.payment_date, c.chit_name, b.name, dcp.paid_amount, dcp.payment_mode
+FROM direct_chit_payments dcp
+JOIN chit_monthly_schedule cms ON dcp.chit_schedule_id = cms.id
+JOIN chits c ON cms.chit_id = c.id
+JOIN borrowers b ON c.borrower_id = b.id
+WHERE b.name = 'BorrowerName'
+ORDER BY dcp.payment_date DESC;
+```
+
+Then delete by ID:
+```sql
+DELETE FROM direct_chit_payments WHERE id = [payment_id];
+```
+
+**Note**: Deleting from direct_chit_payments does NOT automatically update the chit_monthly_schedule. You may need to manually update the paid_amount and payment_status in the chit_monthly_schedule table.
+
+#### Delete Multiple Records (Use with Caution)
+
+Delete all payments for a specific date:
+```sql
+DELETE FROM payments WHERE payment_date = '2026-01-18';
+```
+
+Delete all adjustments for a specific month:
+```sql
+DELETE FROM chit_adjustments WHERE interest_month = '2026-01';
+```
+
+### Database Backup Before Deletion
+
+Always create a backup before deleting records:
+
+```bash
+# Create a backup with timestamp
+cp /Users/asveeranan/git/lending-chit-tracker/database/lending.db \
+   /Users/asveeranan/git/lending-chit-tracker/database/lending_backup_$(date +%Y%m%d_%H%M%S).db
+```
+
 ## Support
 
 For issues or questions:
@@ -594,6 +768,7 @@ For issues or questions:
 3. Check the browser console for JavaScript errors
 4. Review Flask logs in the terminal
 5. Check SQL_REFERENCE.md for direct database queries
+6. Use terminal database access for direct queries and corrections
 
 ## License
 
