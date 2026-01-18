@@ -9,8 +9,6 @@ env/
 ENV/
 
 # Database
-database/lending.db
-database/*.db
 *.db-journal
 
 # Backups
