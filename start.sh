@@ -28,4 +28,4 @@ echo "Access at: http://localhost:5000"
 echo "=========================================="
 echo ""
 
-python app.py
+python3 app.py
