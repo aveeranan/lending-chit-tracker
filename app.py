@@ -81,6 +81,12 @@ def out_of_pocket():
     """Out-of-pocket payments page."""
     return render_template('out_of_pocket.html')
 
+@app.route('/interest-tracker')
+@login_required
+def interest_tracker():
+    """Interest tracker page."""
+    return render_template('interest_tracker.html')
+
 # API Endpoints
 
 @app.route('/api/loans', methods=['GET'])
@@ -333,6 +339,33 @@ def api_restore_database():
         # Restore backup if something went wrong
         if os.path.exists(backup_path):
             shutil.copy(backup_path, db_manager.DB_PATH)
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+# ============================================================================
+# INTEREST TRACKER
+# ============================================================================
+
+@app.route('/api/interest-tracker', methods=['GET'])
+@login_required
+def api_get_interest_tracker():
+    """Get interest tracker data."""
+    status_filter = request.args.get('status')
+    data = db_manager.get_interest_tracker_data(status_filter)
+    return jsonify(data)
+
+@app.route('/api/interest-status', methods=['PUT'])
+@login_required
+def api_update_interest_status():
+    """Update interest status for a loan/month."""
+    data = request.json
+    try:
+        db_manager.update_interest_status(
+            loan_id=int(data['loan_id']),
+            interest_month=data['interest_month'],
+            status=data['status']
+        )
+        return jsonify({'success': True})
+    except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 400
 
 # ============================================================================

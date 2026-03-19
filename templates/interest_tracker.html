@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Interest Tracker - Lending Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Interest Tracker</h1>
+    <div class="header-actions">
+        <select id="statusFilter" onchange="loadInterestData()">
+            <option value="All">All</option>
+            <option value="Paid">Paid</option>
+            <option value="Not Paid" selected>Not Paid</option>
+            <option value="Ignore">Ignore</option>
+            <option value="Closed">Closed</option>
+        </select>
+    </div>
+</div>
+
+<div class="summary-cards" id="summaryCards">
+    <div class="summary-card">
+        <div class="card-label">Total Interest Due</div>
+        <div class="card-value" id="totalDue">-</div>
+    </div>
+    <div class="summary-card">
+        <div class="card-label">Total Interest Paid</div>
+        <div class="card-value" id="totalPaid">-</div>
+    </div>
+    <div class="summary-card">
+        <div class="card-label">Total Pending</div>
+        <div class="card-value" id="totalPending">-</div>
+    </div>
+    <div class="summary-card">
+        <div class="card-label">Records</div>
+        <div class="card-value" id="totalRecords">-</div>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="data-table" id="interestTable">
+        <thead>
+            <tr>
+                <th>Borrower</th>
+                <th>Loan ID</th>
+                <th>Month</th>
+                <th>Interest Due</th>
+                <th>Interest Paid</th>
+                <th>Pending</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="interestTableBody">
+            <tr><td colspan="7" style="text-align: center;">Loading...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script src="{{ url_for('static', filename='js/interest_tracker.js') }}"></script>
+{% endblock %}

@@ -60,8 +60,32 @@ function updateInterestDue() {
         });
 }
 
+function togglePrincipalOnly() {
+    const checked = document.getElementById('principal_only').checked;
+    const interestField = document.getElementById('interest_paid');
+    const principalField = document.getElementById('principal_paid');
+    const total = parseFloat(document.getElementById('total_received').value) || 0;
+
+    if (checked) {
+        interestField.value = '0.00';
+        interestField.disabled = true;
+        principalField.value = total.toFixed(2);
+    } else {
+        interestField.disabled = false;
+        calculateSplit();
+    }
+}
+
 function calculateSplit() {
     const total = parseFloat(document.getElementById('total_received').value) || 0;
+
+    // If principal only mode, all goes to principal
+    if (document.getElementById('principal_only').checked) {
+        document.getElementById('interest_paid').value = '0.00';
+        document.getElementById('principal_paid').value = total.toFixed(2);
+        return;
+    }
+
     const interestDueText = document.getElementById('interestDueDisplay').textContent;
 
     // Extract numeric value from formatted currency
@@ -108,7 +132,7 @@ function submitPayment(event) {
         payment_date: formData.get('payment_date'),
         interest_month: formData.get('interest_month'),
         total_received: formData.get('total_received'),
-        interest_paid: formData.get('interest_paid'),
+        interest_paid: document.getElementById('interest_paid').value,
         principal_paid: formData.get('principal_paid'),
         payment_mode: formData.get('payment_mode'),
         reference: formData.get('reference'),

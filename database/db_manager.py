@@ -509,6 +509,175 @@ def calculate_pending_interest(loan_id, up_to_month=None):
     return round(pending, 2)
 
 # ============================================================================
+# INTEREST TRACKER
+# ============================================================================
+
+def get_interest_tracker_data(status_filter=None):
+    """Get month-by-month interest data for all active loans."""
+    from dateutil.relativedelta import relativedelta
+
+    conn = get_db_connection()
+
+    # Get all active loans
+    cursor = conn.execute('''
+        SELECT l.*, b.name as borrower_name
+        FROM loans l
+        JOIN borrowers b ON l.borrower_id = b.id
+        WHERE l.status = 'Active'
+        ORDER BY b.name, l.id
+    ''')
+    loans = [dict(row) for row in cursor.fetchall()]
+
+    # Get all interest statuses
+    cursor = conn.execute('SELECT loan_id, interest_month, status FROM interest_status')
+    status_map = {}
+    for row in cursor.fetchall():
+        status_map[(row['loan_id'], row['interest_month'])] = row['status']
+
+    # Get all payments grouped by loan_id and interest_month
+    cursor = conn.execute('''
+        SELECT loan_id, interest_month, SUM(interest_paid) as interest_paid
+        FROM payments
+        GROUP BY loan_id, interest_month
+    ''')
+    payment_map = {}
+    for row in cursor.fetchall():
+        payment_map[(row['loan_id'], row['interest_month'])] = row['interest_paid'] or 0
+
+    conn.close()
+
+    current_month = datetime.now().strftime('%Y-%m')
+    rows = []
+
+    for loan in loans:
+        start_date = datetime.strptime(loan['given_date'], '%Y-%m-%d')
+        current = start_date.replace(day=1)
+        end_date = datetime.strptime(current_month + '-01', '%Y-%m-%d')
+
+        while current <= end_date:
+            month_str = current.strftime('%Y-%m')
+
+            interest_due = calculate_interest_due(loan, month_str)
+
+            # Skip months where interest due is 0 (principal fully paid)
+            if interest_due == 0:
+                current += relativedelta(months=1)
+                continue
+
+            interest_paid = payment_map.get((loan['id'], month_str), 0)
+            pending = round(interest_due - interest_paid, 2)
+
+            # Get saved status, or auto-determine
+            saved_status = status_map.get((loan['id'], month_str))
+            if saved_status:
+                status = saved_status
+            elif interest_paid >= interest_due and interest_due > 0:
+                status = 'Paid'
+            else:
+                status = 'Not Paid'
+
+            row = {
+                'loan_id': loan['id'],
+                'borrower_name': loan['borrower_name'],
+                'interest_month': month_str,
+                'interest_due': interest_due,
+                'interest_paid': interest_paid,
+                'pending': pending,
+                'status': status,
+                'outstanding_principal': loan['outstanding_principal'],
+                'monthly_rate': loan['monthly_rate']
+            }
+
+            # Skip fully paid entries (pending <= 0) unless explicitly filtering for Paid
+            if pending <= 0 and status_filter != 'Paid':
+                current += relativedelta(months=1)
+                continue
+
+            if status_filter is None or status_filter == 'All' or status == status_filter:
+                rows.append(row)
+
+            current += relativedelta(months=1)
+
+    return rows
+
+def update_interest_status(loan_id, interest_month, status):
+    """Update or insert interest status for a loan/month.
+
+    Side effects:
+    - 'Closed': Sets outstanding_principal to 0, marks loan as Closed,
+      and marks all months for this loan as Closed.
+    - 'Ignore': Zeros out the pending interest for this month by recording
+      a payment entry covering the remaining interest.
+    """
+    conn = get_db_connection()
+
+    conn.execute('''
+        INSERT INTO interest_status (loan_id, interest_month, status, updated_at)
+        VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(loan_id, interest_month)
+        DO UPDATE SET status = excluded.status, updated_at = CURRENT_TIMESTAMP
+    ''', (loan_id, interest_month, status))
+
+    if status == 'Closed':
+        # Zero out outstanding principal and close the loan
+        conn.execute('''
+            UPDATE loans
+            SET outstanding_principal = 0, status = 'Closed',
+                closed_date = ?, close_reason = 'Closed from Interest Tracker'
+            WHERE id = ?
+        ''', (datetime.now().strftime('%Y-%m-%d'), loan_id))
+
+        # Mark all interest months for this loan as Closed
+        # Get all months that have entries
+        cursor = conn.execute(
+            'SELECT DISTINCT interest_month FROM interest_status WHERE loan_id = ?',
+            (loan_id,))
+        existing_months = [row['interest_month'] for row in cursor.fetchall()]
+
+        # Also get months from payments
+        cursor = conn.execute(
+            'SELECT DISTINCT interest_month FROM payments WHERE loan_id = ?',
+            (loan_id,))
+        for row in cursor.fetchall():
+            if row['interest_month'] not in existing_months:
+                existing_months.append(row['interest_month'])
+
+        for month in existing_months:
+            conn.execute('''
+                INSERT INTO interest_status (loan_id, interest_month, status, updated_at)
+                VALUES (?, ?, 'Closed', CURRENT_TIMESTAMP)
+                ON CONFLICT(loan_id, interest_month)
+                DO UPDATE SET status = 'Closed', updated_at = CURRENT_TIMESTAMP
+            ''', (loan_id, month))
+
+    elif status == 'Ignore':
+        # Zero out pending interest for this month by adding a balancing payment
+        loan = get_loan_by_id(loan_id)
+        if loan:
+            interest_due = calculate_interest_due(loan, interest_month)
+
+            # Get interest already paid for this month
+            cursor = conn.execute('''
+                SELECT SUM(interest_paid) as paid
+                FROM payments WHERE loan_id = ? AND interest_month = ?
+            ''', (loan_id, interest_month))
+            already_paid = cursor.fetchone()['paid'] or 0
+
+            pending = round(interest_due - already_paid, 2)
+            if pending > 0:
+                # Insert a zero-cost balancing payment to clear the pending interest
+                conn.execute('''
+                    INSERT INTO payments (
+                        loan_id, payment_date, interest_month, total_received,
+                        interest_paid, principal_paid, payment_mode, reference, notes
+                    ) VALUES (?, ?, ?, ?, ?, 0, 'Adjustment', 'IGNORE', 'Interest ignored from Interest Tracker')
+                ''', (loan_id, datetime.now().strftime('%Y-%m-%d'), interest_month,
+                      pending, pending))
+
+    conn.commit()
+    conn.close()
+
+# ============================================================================
 # CHIT MANAGEMENT - NEW MODULE (India chit member + borrower interest adjustment)
 # ============================================================================
 

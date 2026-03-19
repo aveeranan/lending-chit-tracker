@@ -19,6 +19,7 @@
                 <li><a href="{{ url_for('monthly_report') }}" class="{% if request.endpoint == 'monthly_report' %}active{% endif %}">Monthly Report</a></li>
                 <li><a href="{{ url_for('chits') }}" class="{% if request.endpoint == 'chits' %}active{% endif %}">Chits</a></li>
                 <li><a href="{{ url_for('out_of_pocket') }}" class="{% if request.endpoint == 'out_of_pocket' %}active{% endif %}">Out of Pocket</a></li>
+                <li><a href="{{ url_for('interest_tracker') }}" class="{% if request.endpoint == 'interest_tracker' %}active{% endif %}">Interest Tracker</a></li>
                 <li><a href="{{ url_for('logout') }}" class="logout-btn">Logout</a></li>
             </ul>
         </div>

@@ -164,6 +164,20 @@ CREATE TABLE IF NOT EXISTS direct_chit_payments (
     FOREIGN KEY (chit_id) REFERENCES chit_groups(id)
 );
 
+-- Interest Status table (tracks manual status per loan per month)
+CREATE TABLE IF NOT EXISTS interest_status (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    loan_id INTEGER NOT NULL,
+    interest_month TEXT NOT NULL,
+    status TEXT DEFAULT 'Not Paid' CHECK(status IN ('Paid', 'Not Paid', 'Ignore', 'Closed')),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (loan_id) REFERENCES loans(id),
+    UNIQUE(loan_id, interest_month)
+);
+
+CREATE INDEX IF NOT EXISTS idx_interest_status_loan ON interest_status(loan_id);
+CREATE INDEX IF NOT EXISTS idx_interest_status_month ON interest_status(interest_month);
+
 -- Indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_loans_borrower ON loans(borrower_id);
 CREATE INDEX IF NOT EXISTS idx_loans_status ON loans(status);

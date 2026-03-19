@@ -712,6 +712,83 @@ body {
     background-color: #f8f9fa;
 }
 
+/* Interest Tracker Status Colors */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.card-label {
+    font-size: 0.875rem;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+}
+
+.card-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+tr.status-paid {
+    background-color: #d4edda !important;
+}
+
+tr.status-not-paid {
+    background-color: #f8d7da !important;
+}
+
+tr.status-ignore {
+    background-color: #e2e3e5 !important;
+}
+
+tr.status-closed {
+    background-color: #cce5ff !important;
+}
+
+.status-select {
+    padding: 0.4rem 0.6rem;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.status-select.status-paid {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+.status-select.status-not-paid {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.status-select.status-ignore {
+    background-color: #e2e3e5;
+    border-color: #d6d8db;
+    color: #383d41;
+}
+
+.status-select.status-closed {
+    background-color: #cce5ff;
+    border-color: #b8daff;
+    color: #004085;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .nav-container {

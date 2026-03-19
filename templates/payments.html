@@ -37,6 +37,13 @@
         </div>
 
         <div class="form-row">
+            <div class="form-group" style="display: flex; align-items: center; gap: 10px; padding-top: 10px;">
+                <input type="checkbox" id="principal_only" onchange="togglePrincipalOnly()">
+                <label for="principal_only" style="margin: 0; font-weight: bold;">Principal Only Payment</label>
+            </div>
+        </div>
+
+        <div class="form-row">
             <div class="form-group">
                 <label for="total_received">Total Amount Received *</label>
                 <input type="number" id="total_received" name="total_received" step="0.01" required onchange="calculateSplit()">
