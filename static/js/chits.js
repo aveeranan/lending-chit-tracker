@@ -1015,6 +1015,16 @@ async function closeChit(chitId) {
     }
 }
 
+// Close view modal on Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        const viewModal = document.getElementById('viewChitModal');
+        if (viewModal && viewModal.style.display === 'block') {
+            closeViewChitModal();
+        }
+    }
+});
+
 // Close modals when clicking outside
 window.onclick = function(event) {
     if (event.target.classList.contains('modal')) {
