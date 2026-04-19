@@ -461,6 +461,16 @@ function toggleLoanAmounts() {
     }
 }
 
+// Close view modal on Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        const viewModal = document.getElementById('viewLoanModal');
+        if (viewModal && viewModal.style.display === 'block') {
+            closeViewLoanModal();
+        }
+    }
+});
+
 // Close modals when clicking outside
 window.onclick = function(event) {
     const addModal = document.getElementById('addLoanModal');
