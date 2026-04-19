@@ -75,12 +75,11 @@ function displayLoans(loans) {
     tbody.innerHTML = loans.map(loan => `
         <tr>
             <td>${loan.borrower_name}</td>
-            <td>${loan.borrower_phone || '-'}</td>
             <td>${formatCurrency(loan.principal_given)}</td>
             <td>${formatCurrency(loan.outstanding_principal)}</td>
             <td>${loan.monthly_rate}%</td>
             <td id="interest-${loan.id}">-</td>
-            <td><span class="status-badge status-${loan.status.toLowerCase()}">${loan.status}</span></td>
+            <td>${getLoanStatusBadge(loan)}</td>
             <td>
                 <button class="btn btn-sm btn-secondary" onclick="viewLoan(${loan.id})">View</button>
                 <button class="btn btn-sm btn-success" onclick="editLoan(${loan.id})">Edit</button>
@@ -96,6 +95,17 @@ function displayLoans(loans) {
             calculateInterestDue(loan.id, currentMonth);
         }
     });
+}
+
+function getLoanStatusBadge(loan) {
+    if (loan.status !== 'Active') {
+        return `<span class="status-badge status-closed">Closed</span>`;
+    }
+    const pm = loan.pending_months || 0;
+    if (pm === 0) {
+        return `<span class="status-badge status-current">Current</span>`;
+    }
+    return `<span class="status-badge status-pending">P ${pm} ${pm === 1 ? 'month' : 'months'}</span>`;
 }
 
 function calculateInterestDue(loanId, month) {

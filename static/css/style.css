@@ -313,6 +313,16 @@ body {
     color: #721c24;
 }
 
+.status-current {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
 /* Forms */
 .form-container {
     background: white;

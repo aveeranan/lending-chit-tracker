@@ -148,7 +148,47 @@ def get_loans(status=None, search=None):
     loans = cursor.fetchall()
     conn.close()
 
-    return [dict(loan) for loan in loans]
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+
+    current_month = datetime.now().strftime('%Y-%m')
+    result = []
+    for loan in loans:
+        loan_dict = dict(loan)
+        if loan_dict['status'] == 'Active':
+            loan_dict['pending_months'] = _count_pending_months(loan_dict, current_month)
+        else:
+            loan_dict['pending_months'] = 0
+        result.append(loan_dict)
+
+    return result
+
+def _count_pending_months(loan, up_to_month):
+    """Count months with unpaid interest for an active loan."""
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+
+    conn = get_db_connection()
+    start_date = datetime.strptime(loan['given_date'], '%Y-%m-%d')
+    end_date = datetime.strptime(up_to_month + '-01', '%Y-%m-%d')
+    current = start_date.replace(day=1)
+    pending_count = 0
+
+    while current <= end_date:
+        month_str = current.strftime('%Y-%m')
+        interest_due = calculate_interest_due(loan, month_str)
+        if interest_due > 0:
+            cursor = conn.execute(
+                'SELECT SUM(interest_paid) as paid FROM payments WHERE loan_id = ? AND interest_month = ?',
+                (loan['id'], month_str)
+            )
+            paid = cursor.fetchone()['paid'] or 0
+            if paid < interest_due:
+                pending_count += 1
+        current += relativedelta(months=1)
+
+    conn.close()
+    return pending_count
 
 def get_loans_summary():
     """Get summary statistics for all active loans."""
