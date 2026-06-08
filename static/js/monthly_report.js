@@ -2,8 +2,29 @@
 document.addEventListener('DOMContentLoaded', function() {
     const currentMonth = new Date().toISOString().slice(0, 7);
     document.getElementById('reportMonth').value = currentMonth;
+    updateMonthDisplay(currentMonth);
     loadMonthlyReport();
 });
+
+function formatMonthLabel(monthStr) {
+    const [year, month] = monthStr.split('-');
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${year}(${monthNames[parseInt(month, 10) - 1]})`;
+}
+
+function updateMonthDisplay(monthStr) {
+    document.getElementById('monthDisplay').textContent = formatMonthLabel(monthStr);
+}
+
+function changeMonth(delta) {
+    const current = document.getElementById('reportMonth').value;
+    const [year, month] = current.split('-').map(Number);
+    const date = new Date(year, month - 1 + delta, 1);
+    const newMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    document.getElementById('reportMonth').value = newMonth;
+    updateMonthDisplay(newMonth);
+    loadMonthlyReport();
+}
 
 function loadMonthlyReport() {
     const reportMonth = document.getElementById('reportMonth').value;
@@ -28,9 +49,7 @@ function loadMonthlyReport() {
 function displayMonthlyReport(month, report) {
     const container = document.getElementById('reportContent');
 
-    // Format month for display
-    const monthDate = new Date(month + '-01');
-    const monthName = monthDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'long' });
+    const monthName = formatMonthLabel(month);
 
     let html = `
     <div class="report-totals">
